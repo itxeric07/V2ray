@@ -139,12 +139,16 @@ fun V2RayVpnApp(
                             } catch (_: Exception) {
                                 null
                             }
-                            vpnViewModel.selectAndConnectServer(
-                                server = server,
-                                openConnectedScreen = true
-                            )
                             if (prepareIntent != null && context is Activity) {
+                                // Persist the selection, but do not start the service until the
+                                // Android VPN consent activity returns RESULT_OK.
+                                vpnViewModel.selectServer(server, openConnectedScreen = true)
                                 vpnPermissionLauncher.launch(prepareIntent)
+                            } else {
+                                vpnViewModel.selectAndConnectServer(
+                                    server = server,
+                                    openConnectedScreen = true
+                                )
                             }
                         },
                         onRefreshFletcher = {

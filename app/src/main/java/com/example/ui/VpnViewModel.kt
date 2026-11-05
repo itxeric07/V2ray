@@ -309,6 +309,15 @@ class VpnViewModel(application: Application) : AndroidViewModel(application) {
         _activeAddTab.value = tab
     }
 
+    /** Selects a server without starting the VPN. Used while Android shows its consent dialog. */
+    fun selectServer(server: ServerEntity, openConnectedScreen: Boolean = true) {
+        viewModelScope.launch {
+            dao.clearSelection()
+            dao.markSelected(server.id)
+            if (openConnectedScreen) navigateTo(VpnScreen.CONNECTED_HOME)
+        }
+    }
+
     fun selectAndConnectServer(server: ServerEntity, openConnectedScreen: Boolean = true) {
         viewModelScope.launch {
             dao.clearSelection()

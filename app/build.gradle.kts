@@ -16,6 +16,11 @@ android {
     applicationId = "com.aistudio.v2rayvpn.xrvpnq"
     minSdk = 24
     targetSdk = 36
+    // Ship one compact universal APK for supported Android phone ABIs.
+    // X86 is not included because this app targets physical ARM phones.
+    ndk {
+      abiFilters += listOf("arm64-v8a", "armeabi-v7a")
+    }
     versionCode = 1
     versionName = "1.0"
 
