@@ -89,7 +89,8 @@ class XrayVpnService : VpnService() {
                 }
                 initializeXray()
                 val core = Libv2ray.newCoreController(CoreCallback())
-                core.startLoop(xrayJson)
+                // tun2socks owns the Android TUN descriptor; Xray consumes local SOCKS only.
+                core.startLoop(xrayJson, 0)
                 coreController = core
 
                 val builder = Builder()
