@@ -31,8 +31,6 @@ import libv2ray.CoreCallbackHandler
 import libv2ray.CoreController
 import libv2ray.Libv2ray
 import java.io.File
-import java.net.InetSocketAddress
-import java.net.Socket
 import java.security.MessageDigest
 
 /** Android VPN service backed by Xray-core and the native tun2socks bridge. */
@@ -103,12 +101,6 @@ class XrayVpnService : VpnService() {
                 vpnInterface?.close()
                 vpnInterface = builder.establish() ?: error("Android OS rejected TUN interface creation")
 
-                // Android must have an established VPN interface before protect() can
-                // associate the upstream socket with the underlying network.
-                Socket().use { socket ->
-                    check(protect(socket)) { "Could not protect the server socket" }
-                    socket.connect(InetSocketAddress(host, port), 3500)
-                }
                 initializeXray()
                 val core = Libv2ray.newCoreController(CoreCallback())
                 // tun2socks owns the Android TUN descriptor; Xray consumes local SOCKS only.
