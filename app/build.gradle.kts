@@ -17,9 +17,9 @@ android {
     minSdk = 24
     targetSdk = 36
     // Ship one compact universal APK for supported Android phone ABIs.
-    // Only arm64-v8a is included because this app targets modern physical ARM phones.
+    // ARM64 and 32-bit ARM are included for broad physical Android phone compatibility.
     ndk {
-      abiFilters += listOf("arm64-v8a")
+      abiFilters += listOf("arm64-v8a", "armeabi-v7a")
     }
     versionCode = 1
     versionName = "1.0"
