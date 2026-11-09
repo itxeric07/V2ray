@@ -83,16 +83,6 @@ class XrayVpnService : VpnService() {
         }
         tunnelJob = serviceScope.launch {
             try {
-                Socket().use { socket ->
-                    check(protect(socket)) { "Could not protect the server socket" }
-                    socket.connect(InetSocketAddress(host, port), 3500)
-                }
-                initializeXray()
-                val core = Libv2ray.newCoreController(CoreCallback())
-                // tun2socks owns the Android TUN descriptor; Xray consumes local SOCKS only.
-                core.startLoop(xrayJson, 0)
-                coreController = core
-
                 val builder = Builder()
                     .setSession("V2Ray VPN - $country ($host)")
                     .setMtu(VPN_MTU)
@@ -112,6 +102,18 @@ class XrayVpnService : VpnService() {
                 }
                 vpnInterface?.close()
                 vpnInterface = builder.establish() ?: error("Android OS rejected TUN interface creation")
+
+                // Android must have an established VPN interface before protect() can
+                // associate the upstream socket with the underlying network.
+                Socket().use { socket ->
+                    check(protect(socket)) { "Could not protect the server socket" }
+                    socket.connect(InetSocketAddress(host, port), 3500)
+                }
+                initializeXray()
+                val core = Libv2ray.newCoreController(CoreCallback())
+                // tun2socks owns the Android TUN descriptor; Xray consumes local SOCKS only.
+                core.startLoop(xrayJson, 0)
+                coreController = core
                 startTun2Socks()
                 _lastError.value = null
                 _isServiceRunning.value = true
