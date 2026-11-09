@@ -388,7 +388,7 @@ fun ServerListScreen(
 }
 
 @Composable
-private fun CircularHeaderIconButton(
+fun CircularHeaderIconButton(
     icon: ImageVector,
     contentDescription: String,
     testTag: String,
@@ -420,7 +420,7 @@ private fun CircularHeaderIconButton(
 }
 
 @Composable
-private fun ServerItemRowContent(
+fun ServerItemRowContent(
     server: ServerEntity,
     showLightningBadge: Boolean,
     onSelect: () -> Unit,

@@ -21,6 +21,11 @@ android {
     ndk {
       abiFilters += listOf("arm64-v8a")
     }
+    packaging {
+      jniLibs {
+        useLegacyPackaging = true
+      }
+    }
     versionCode = 1
     versionName = "1.0"
 

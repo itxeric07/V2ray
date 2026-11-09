@@ -132,9 +132,9 @@ class XrayVpnService : VpnService() {
     private fun startTun2Socks() {
         val socketPath = File(filesDir, TUN_SOCKET_NAME).absolutePath
         File(socketPath).delete()
-        val executable = resolveTun2SocksExecutable()
+        val executable = File(applicationInfo.nativeLibraryDir, TUN2SOCKS_NAME)
         check(executable.exists() && executable.canExecute()) {
-            "tun2socks is unavailable for ABIs ${Build.SUPPORTED_ABIS.joinToString()}; checked ${executable.absolutePath}"
+            "tun2socks native library is unavailable for ${Build.SUPPORTED_ABIS.joinToString()}; checked ${executable.absolutePath}"
         }
         val command = listOf(
             executable.absolutePath, "--netif-ipaddr", "10.26.0.2", "--netif-netmask", "255.255.255.252",
@@ -143,31 +143,6 @@ class XrayVpnService : VpnService() {
         )
         tun2socksProcess = ProcessBuilder(command).directory(filesDir).redirectErrorStream(true).start()
         sendTunFd(socketPath)
-    }
-
-    /**
-     * Prefer Android's extracted native-library directory. Some OEMs and install
-     * paths do not expose manually launched .so executables there, so keep an
-     * ABI-specific asset fallback and copy it into app-private storage.
-     */
-    private fun resolveTun2SocksExecutable(): File {
-        val nativeExecutable = File(applicationInfo.nativeLibraryDir, TUN2SOCKS_NAME)
-        if (nativeExecutable.exists()) {
-            nativeExecutable.setExecutable(true, false)
-            return nativeExecutable
-        }
-
-        val abi = Build.SUPPORTED_ABIS.firstOrNull { it == "arm64-v8a" || it == "armeabi-v7a" }
-            ?: Build.SUPPORTED_ABIS.firstOrNull().orEmpty()
-        val target = File(filesDir, "tun2socks/$abi/$TUN2SOCKS_NAME")
-        if (!target.exists()) {
-            target.parentFile?.mkdirs()
-            assets.open("tun2socks/$abi/$TUN2SOCKS_NAME").use { input ->
-                target.outputStream().use { output -> input.copyTo(output) }
-            }
-        }
-        target.setExecutable(true, false)
-        return target
     }
 
     private fun sendTunFd(socketPath: String) {

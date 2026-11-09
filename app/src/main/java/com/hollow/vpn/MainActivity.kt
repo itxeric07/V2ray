@@ -20,7 +20,13 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Snackbar
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Dashboard
+import androidx.compose.material.icons.outlined.Dns
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -35,9 +41,9 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.hollow.vpn.ui.VpnScreen
 import com.hollow.vpn.ui.VpnViewModel
 import com.hollow.vpn.ui.screens.AddServerScreen
+import com.hollow.vpn.ui.screens.CountryServerListScreen
 import com.hollow.vpn.ui.screens.ConnectedHomeScreen
 import com.hollow.vpn.ui.screens.RawXrayJsonEditorDialog
-import com.hollow.vpn.ui.screens.ServerListScreen
 import com.hollow.vpn.ui.screens.SettingsScreen
 import com.hollow.vpn.ui.screens.SplashFetchingScreen
 import com.hollow.vpn.ui.theme.ForestEmerald
@@ -62,7 +68,6 @@ fun HollowVpnApp(
     val context = LocalContext.current
     val currentScreen by vpnViewModel.currentScreen.collectAsStateWithLifecycle()
     val filteredServers by vpnViewModel.filteredServers.collectAsStateWithLifecycle()
-    val selectedFilter by vpnViewModel.selectedFilter.collectAsStateWithLifecycle()
     val selectedServer by vpnViewModel.selectedServer.collectAsStateWithLifecycle()
     val telemetry by vpnViewModel.telemetry.collectAsStateWithLifecycle()
     val settings by vpnViewModel.settings.collectAsStateWithLifecycle()
@@ -129,10 +134,8 @@ fun HollowVpnApp(
                 }
 
                 VpnScreen.SERVER_LIST -> {
-                    ServerListScreen(
+                    CountryServerListScreen(
                         servers = filteredServers,
-                        selectedFilter = selectedFilter,
-                        onSelectFilter = vpnViewModel::setFilter,
                         onSelectServer = { server ->
                             val prepareIntent = try {
                                 VpnService.prepare(context)
@@ -151,7 +154,7 @@ fun HollowVpnApp(
                                 )
                             }
                         },
-                        onRefreshFletcher = {
+                        onRefresh = {
                             vpnViewModel.runFletcherAutoFetchAndPingSweep(
                                 returnScreen = VpnScreen.SERVER_LIST
                             )
@@ -222,6 +225,27 @@ fun HollowVpnApp(
                         }
                     )
                 }
+            }
+        }
+
+        if (currentScreen == VpnScreen.CONNECTED_HOME || currentScreen == VpnScreen.SERVER_LIST) {
+            NavigationBar(
+                modifier = Modifier.align(Alignment.BottomCenter),
+                containerColor = MaterialTheme.colorScheme.surface,
+                tonalElevation = 3.dp
+            ) {
+                NavigationBarItem(
+                    selected = currentScreen == VpnScreen.CONNECTED_HOME,
+                    onClick = { vpnViewModel.navigateTo(VpnScreen.CONNECTED_HOME) },
+                    icon = { androidx.compose.material3.Icon(Icons.Outlined.Dashboard, "Dashboard") },
+                    label = { Text("Dashboard") }
+                )
+                NavigationBarItem(
+                    selected = currentScreen == VpnScreen.SERVER_LIST,
+                    onClick = { vpnViewModel.navigateTo(VpnScreen.SERVER_LIST) },
+                    icon = { androidx.compose.material3.Icon(Icons.Outlined.Dns, "Servers") },
+                    label = { Text("Servers") }
+                )
             }
         }
 
