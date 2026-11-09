@@ -1,4 +1,4 @@
-package com.example.ui.screens
+package com.hollow.vpn.ui.screens
 
 import android.content.ClipboardManager
 import android.content.Context
@@ -76,23 +76,23 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.R
-import com.example.data.AppSettingsState
-import com.example.data.ServerEntity
-import com.example.ui.AddServerTab
-import com.example.ui.components.SageOrganicBackground
-import com.example.ui.theme.DisconnectCrimson
-import com.example.ui.theme.DividerSage
-import com.example.ui.theme.EmeraldSwitchActive
-import com.example.ui.theme.ForestEmerald
-import com.example.ui.theme.InputFieldBg
-import com.example.ui.theme.JetBrainsMonoFamily
-import com.example.ui.theme.PureWhiteCard
-import com.example.ui.theme.SelectedMintCard
-import com.example.ui.theme.SubtleCardBorder
-import com.example.ui.theme.TextPrimaryDark
-import com.example.ui.theme.TextSecondaryMuted
-import com.example.ui.theme.TextTertiaryHint
+import com.hollow.vpn.R
+import com.hollow.vpn.data.AppSettingsState
+import com.hollow.vpn.data.ServerEntity
+import com.hollow.vpn.ui.AddServerTab
+import com.hollow.vpn.ui.components.SageOrganicBackground
+import com.hollow.vpn.ui.theme.DisconnectCrimson
+import com.hollow.vpn.ui.theme.DividerSage
+import com.hollow.vpn.ui.theme.EmeraldSwitchActive
+import com.hollow.vpn.ui.theme.ForestEmerald
+import com.hollow.vpn.ui.theme.InputFieldBg
+import com.hollow.vpn.ui.theme.JetBrainsMonoFamily
+import com.hollow.vpn.ui.theme.PureWhiteCard
+import com.hollow.vpn.ui.theme.SelectedMintCard
+import com.hollow.vpn.ui.theme.SubtleCardBorder
+import com.hollow.vpn.ui.theme.TextPrimaryDark
+import com.hollow.vpn.ui.theme.TextSecondaryMuted
+import com.hollow.vpn.ui.theme.TextTertiaryHint
 
 data class SettingChoiceOption(
     val value: String,

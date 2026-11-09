@@ -1,4 +1,4 @@
-package com.example.ui.screens
+package com.hollow.vpn.ui.screens
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
@@ -67,29 +67,29 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.R
-import com.example.data.ServerEntity
-import com.example.data.ServerFilter
-import com.example.ui.ConnectionTelemetryState
-import com.example.ui.components.CircularCountryFlag
-import com.example.ui.components.FetchingSpinnerRing
-import com.example.ui.components.OrganicEmeraldPowerOrb
-import com.example.ui.components.SageOrganicBackground
-import com.example.ui.components.SignalStrengthBars
-import com.example.ui.components.V2RayPaperPlaneLogoCard
-import com.example.ui.theme.DisconnectCrimson
-import com.example.ui.theme.DisconnectPillBg
-import com.example.ui.theme.DividerSage
-import com.example.ui.theme.EmeraldAccent
-import com.example.ui.theme.ForestEmerald
-import com.example.ui.theme.PureWhiteCard
-import com.example.ui.theme.SelectedMintCard
-import com.example.ui.theme.SubtleCardBorder
-import com.example.ui.theme.TextPrimaryDark
-import com.example.ui.theme.TextSecondaryMuted
+import com.hollow.vpn.R
+import com.hollow.vpn.data.ServerEntity
+import com.hollow.vpn.data.ServerFilter
+import com.hollow.vpn.ui.ConnectionTelemetryState
+import com.hollow.vpn.ui.components.CircularCountryFlag
+import com.hollow.vpn.ui.components.FetchingSpinnerRing
+import com.hollow.vpn.ui.components.OrganicEmeraldPowerOrb
+import com.hollow.vpn.ui.components.SageOrganicBackground
+import com.hollow.vpn.ui.components.SignalStrengthBars
+import com.hollow.vpn.ui.components.HollowVpnLogoCard
+import com.hollow.vpn.ui.theme.DisconnectCrimson
+import com.hollow.vpn.ui.theme.DisconnectPillBg
+import com.hollow.vpn.ui.theme.DividerSage
+import com.hollow.vpn.ui.theme.EmeraldAccent
+import com.hollow.vpn.ui.theme.ForestEmerald
+import com.hollow.vpn.ui.theme.PureWhiteCard
+import com.hollow.vpn.ui.theme.SelectedMintCard
+import com.hollow.vpn.ui.theme.SubtleCardBorder
+import com.hollow.vpn.ui.theme.TextPrimaryDark
+import com.hollow.vpn.ui.theme.TextSecondaryMuted
 
 /**
- * SCREEN 1: Splash / Auto-Fetching Servers Screen ("V2Ray VPN — Fast. Private. Open Internet.")
+ * SCREEN 1: Splash / Auto-Fetching Servers Screen ("Hollow VPN — Fast. Private. Open Internet.")
  * Matches the leftmost phone in the user's reference screenshot.
  */
 @Composable
@@ -111,7 +111,7 @@ fun SplashFetchingScreen(
         ) {
             Spacer(modifier = Modifier.weight(0.95f))
 
-            V2RayPaperPlaneLogoCard(cardSize = 88.dp)
+            HollowVpnLogoCard(cardSize = 88.dp)
 
             Spacer(modifier = Modifier.height(22.dp))
 

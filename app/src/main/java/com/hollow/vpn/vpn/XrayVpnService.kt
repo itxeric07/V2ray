@@ -1,4 +1,4 @@
-package com.example.vpn
+package com.hollow.vpn.vpn
 
 import android.app.Notification
 import android.app.NotificationChannel
@@ -13,8 +13,8 @@ import android.os.ParcelFileDescriptor
 import android.util.Base64
 import android.util.Log
 import androidx.core.app.NotificationCompat
-import com.example.MainActivity
-import com.example.R
+import com.hollow.vpn.MainActivity
+import com.hollow.vpn.R
 import go.Seq
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -82,7 +82,7 @@ class XrayVpnService : VpnService() {
         tunnelJob = serviceScope.launch {
             try {
                 val builder = Builder()
-                    .setSession("V2Ray VPN - $country ($host)")
+                    .setSession("Hollow VPN - $country ($host)")
                     .setMtu(VPN_MTU)
                     .addAddress("10.26.0.1", 30)
                     .addDnsServer(selectedDns(dnsMode))
@@ -203,7 +203,7 @@ class XrayVpnService : VpnService() {
     private fun createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             getSystemService(NotificationManager::class.java)?.createNotificationChannel(
-                NotificationChannel(CHANNEL_ID, "V2Ray VPN Tunnel", NotificationManager.IMPORTANCE_LOW)
+                NotificationChannel(CHANNEL_ID, "Hollow VPN Tunnel", NotificationManager.IMPORTANCE_LOW)
             )
         }
     }
@@ -213,7 +213,7 @@ class XrayVpnService : VpnService() {
         val disconnectIntent = PendingIntent.getService(this, 1, Intent(this, XrayVpnService::class.java).apply { action = ACTION_DISCONNECT }, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
         return NotificationCompat.Builder(this, CHANNEL_ID)
             .setSmallIcon(R.mipmap.ic_launcher)
-            .setContentTitle("V2Ray VPN · $country")
+            .setContentTitle("Hollow VPN · $country")
             .setContentText("$protocol · $host")
             .setContentIntent(openIntent)
             .addAction(0, "Disconnect", disconnectIntent)
@@ -228,8 +228,8 @@ class XrayVpnService : VpnService() {
     }
 
     companion object {
-        const val ACTION_CONNECT = "com.example.vpn.ACTION_CONNECT"
-        const val ACTION_DISCONNECT = "com.example.vpn.ACTION_DISCONNECT"
+        const val ACTION_CONNECT = "com.hollow.vpn.vpn.ACTION_CONNECT"
+        const val ACTION_DISCONNECT = "com.hollow.vpn.vpn.ACTION_DISCONNECT"
         const val EXTRA_SERVER_COUNTRY = "extra_server_country"
         const val EXTRA_SERVER_HOST = "extra_server_host"
         const val EXTRA_SERVER_PORT = "extra_server_port"

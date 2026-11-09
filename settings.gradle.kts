@@ -22,6 +22,6 @@ dependencyResolutionManagement {
   }
 }
 
-rootProject.name = "V2Ray VPN"
+rootProject.name = "Hollow VPN"
 
 include(":app")

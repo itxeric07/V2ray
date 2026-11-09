@@ -1,4 +1,4 @@
-package com.example
+package com.hollow.vpn
 
 import android.app.Activity
 import android.app.ActivityManager
@@ -32,31 +32,31 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.ui.VpnScreen
-import com.example.ui.VpnViewModel
-import com.example.ui.screens.AddServerScreen
-import com.example.ui.screens.ConnectedHomeScreen
-import com.example.ui.screens.RawXrayJsonEditorDialog
-import com.example.ui.screens.ServerListScreen
-import com.example.ui.screens.SettingsScreen
-import com.example.ui.screens.SplashFetchingScreen
-import com.example.ui.theme.ForestEmerald
-import com.example.ui.theme.MyApplicationTheme
+import com.hollow.vpn.ui.VpnScreen
+import com.hollow.vpn.ui.VpnViewModel
+import com.hollow.vpn.ui.screens.AddServerScreen
+import com.hollow.vpn.ui.screens.ConnectedHomeScreen
+import com.hollow.vpn.ui.screens.RawXrayJsonEditorDialog
+import com.hollow.vpn.ui.screens.ServerListScreen
+import com.hollow.vpn.ui.screens.SettingsScreen
+import com.hollow.vpn.ui.screens.SplashFetchingScreen
+import com.hollow.vpn.ui.theme.ForestEmerald
+import com.hollow.vpn.ui.theme.HollowVpnTheme
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            MyApplicationTheme {
-                V2RayVpnApp()
+            HollowVpnTheme {
+                HollowVpnApp()
             }
         }
     }
 }
 
 @Composable
-fun V2RayVpnApp(
+fun HollowVpnApp(
     vpnViewModel: VpnViewModel = viewModel()
 ) {
     val context = LocalContext.current

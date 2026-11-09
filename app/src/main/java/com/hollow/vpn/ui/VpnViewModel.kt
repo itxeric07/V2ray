@@ -1,18 +1,18 @@
-package com.example.ui
+package com.hollow.vpn.ui
 
 import android.app.Application
 import android.content.Intent
 import android.net.TrafficStats
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.data.AppSettingsState
-import com.example.data.ServerEntity
-import com.example.data.ServerFilter
-import com.example.data.SubscriptionEntity
-import com.example.data.VpnDatabase
-import com.example.data.VpnPreferencesStore
-import com.example.vpn.V2RayParserAndFletcher
-import com.example.vpn.XrayVpnService
+import com.hollow.vpn.data.AppSettingsState
+import com.hollow.vpn.data.ServerEntity
+import com.hollow.vpn.data.ServerFilter
+import com.hollow.vpn.data.SubscriptionEntity
+import com.hollow.vpn.data.VpnDatabase
+import com.hollow.vpn.data.VpnPreferencesStore
+import com.hollow.vpn.vpn.V2RayParserAndFletcher
+import com.hollow.vpn.vpn.XrayVpnService
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay

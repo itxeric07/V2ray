@@ -5,7 +5,7 @@
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
-    <!-- Left/Top Wing of V2Ray Paper Plane -->
+    <!-- Left/Top Wing of Hollow VPN mark -->
     <path
         android:pathData="M24,52 L82,28 L55,58 Z">
         <aapt:attr name="android:fillColor">
@@ -15,16 +15,16 @@
                 android:endX="82"
                 android:endY="28"
                 android:type="linear">
-                <item android:offset="0.0" android:color="#6CD49F" />
-                <item android:offset="1.0" android:color="#2E8B6D" />
+                <item android:offset="0.0" android:color="#DADCE0" />
+                <item android:offset="1.0" android:color="#80868B" />
             </gradient>
         </aapt:attr>
     </path>
     <!-- Center Fold Shadow -->
     <path
-        android:fillColor="#1C5D48"
+        android:fillColor="#303134"
         android:pathData="M55,58 L82,28 L49,73 Z" />
-    <!-- Right/Bottom Wing of V2Ray Paper Plane -->
+    <!-- Right/Bottom Wing of Hollow VPN mark -->
     <path
         android:pathData="M55,58 L82,28 L66,82 Z">
         <aapt:attr name="android:fillColor">
@@ -34,8 +34,8 @@
                 android:endX="78"
                 android:endY="82"
                 android:type="linear">
-                <item android:offset="0.0" android:color="#39A782" />
-                <item android:offset="1.0" android:color="#216853" />
+                <item android:offset="0.0" android:color="#9AA0A6" />
+                <item android:offset="1.0" android:color="#3C4043" />
             </gradient>
         </aapt:attr>
     </path>

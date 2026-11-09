@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">V2Ray VPN</string>
+    <string name="app_name">Hollow VPN</string>
     <string name="tagline_fast_private">Fast. Private. Open Internet.</string>
     <string name="fetching_servers_title">Fetching servers…</string>
     <string name="auto_configuring_subtitle">Auto configuring for you</string>

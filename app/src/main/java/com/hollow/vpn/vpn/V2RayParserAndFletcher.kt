@@ -1,8 +1,8 @@
-package com.example.vpn
+package com.hollow.vpn.vpn
 
 import android.util.Base64
-import com.example.data.AppSettingsState
-import com.example.data.ServerEntity
+import com.hollow.vpn.data.AppSettingsState
+import com.hollow.vpn.data.ServerEntity
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll

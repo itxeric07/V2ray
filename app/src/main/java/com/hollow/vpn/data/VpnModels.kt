@@ -1,4 +1,4 @@
-package com.example.data
+package com.hollow.vpn.data
 
 import android.content.Context
 import androidx.room.Dao

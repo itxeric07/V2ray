@@ -9,11 +9,11 @@ plugins {
 }
 
 android {
-  namespace = "com.example"
+  namespace = "com.hollow.vpn"
   compileSdk { version = release(36) { minorApiLevel = 1 } }
 
   defaultConfig {
-    applicationId = "com.aistudio.v2rayvpn.xrvpnq"
+    applicationId = "com.hollow.vpn"
     minSdk = 24
     targetSdk = 36
     // Ship one compact universal APK for supported Android phone ABIs.

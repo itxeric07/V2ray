@@ -1,4 +1,4 @@
-package com.example.ui.components
+package com.hollow.vpn.ui.components
 
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
@@ -43,19 +43,19 @@ import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.example.ui.theme.AuraCoreGreen
-import com.example.ui.theme.AuraInnerEmerald
-import com.example.ui.theme.AuraMidTeal
-import com.example.ui.theme.AuraOuterMint
-import com.example.ui.theme.ForestEmerald
-import com.example.ui.theme.PureWhiteCard
-import com.example.ui.theme.SageBackgroundBottom
-import com.example.ui.theme.SageBackgroundTop
-import com.example.ui.theme.SageBlobLight
-import com.example.ui.theme.SageBlobMedium
-import com.example.ui.theme.SignalInactiveBar
-import com.example.ui.theme.SignalLowPingGreen
-import com.example.ui.theme.SignalMedPingAmber
+import com.hollow.vpn.ui.theme.AuraCoreGreen
+import com.hollow.vpn.ui.theme.AuraInnerEmerald
+import com.hollow.vpn.ui.theme.AuraMidTeal
+import com.hollow.vpn.ui.theme.AuraOuterMint
+import com.hollow.vpn.ui.theme.ForestEmerald
+import com.hollow.vpn.ui.theme.PureWhiteCard
+import com.hollow.vpn.ui.theme.SageBackgroundBottom
+import com.hollow.vpn.ui.theme.SageBackgroundTop
+import com.hollow.vpn.ui.theme.SageBlobLight
+import com.hollow.vpn.ui.theme.SageBlobMedium
+import com.hollow.vpn.ui.theme.SignalInactiveBar
+import com.hollow.vpn.ui.theme.SignalLowPingGreen
+import com.hollow.vpn.ui.theme.SignalMedPingAmber
 import kotlin.math.cos
 import kotlin.math.sin
 
@@ -109,10 +109,10 @@ fun SageOrganicBackground(
 }
 
 /**
- * Custom 3D-styled Green Paper Plane Squircle Logo from Screen 1 ("V2Ray VPN").
+ * Custom 3D-styled Green Paper Plane Squircle Logo from Screen 1 ("Hollow VPN").
  */
 @Composable
-fun V2RayPaperPlaneLogoCard(
+fun HollowVpnLogoCard(
     modifier: Modifier = Modifier,
     cardSize: Dp = 88.dp
 ) {
@@ -136,7 +136,7 @@ fun V2RayPaperPlaneLogoCard(
             val w = size.width
             val h = size.height
 
-            // Left/Upper Wing (Light mint-green gradient)
+            // Left/Upper Wing (neutral gradient)
             val upperWing = Path().apply {
                 moveTo(w * 0.08f, h * 0.48f)
                 lineTo(w * 0.90f, h * 0.14f)
@@ -146,13 +146,13 @@ fun V2RayPaperPlaneLogoCard(
             drawPath(
                 path = upperWing,
                 brush = Brush.linearGradient(
-                    colors = listOf(Color(0xFF7BE0AD), Color(0xFF349D7A)),
+                    colors = listOf(Color(0xFFDADCE0), Color(0xFF80868B)),
                     start = Offset(0f, h * 0.4f),
                     end = Offset(w * 0.9f, h * 0.14f)
                 )
             )
 
-            // Center Fold (Deep emerald shadow)
+            // Center Fold (deep neutral shadow)
             val centerFold = Path().apply {
                 moveTo(w * 0.50f, h * 0.56f)
                 lineTo(w * 0.90f, h * 0.14f)
@@ -161,10 +161,10 @@ fun V2RayPaperPlaneLogoCard(
             }
             drawPath(
                 path = centerFold,
-                color = Color(0xFF1B5E48)
+                color = Color(0xFF303134)
             )
 
-            // Right/Lower Wing (Rich teal-emerald gradient)
+            // Right/Lower Wing (neutral gradient)
             val lowerWing = Path().apply {
                 moveTo(w * 0.50f, h * 0.56f)
                 lineTo(w * 0.90f, h * 0.14f)
@@ -174,7 +174,7 @@ fun V2RayPaperPlaneLogoCard(
             drawPath(
                 path = lowerWing,
                 brush = Brush.linearGradient(
-                    colors = listOf(Color(0xFF42B38D), Color(0xFF216D54)),
+                    colors = listOf(Color(0xFF9AA0A6), Color(0xFF3C4043)),
                     start = Offset(w * 0.5f, h * 0.5f),
                     end = Offset(w * 0.85f, h * 0.88f)
                 )
