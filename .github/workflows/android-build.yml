@@ -1,4 +1,4 @@
-name: Android CI & R8 Release Build
+name: Android Release APKs
 
 on:
   push:
@@ -8,8 +8,8 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
-    name: Build Debug & R8 Minified Release APK
+  build-release-apks:
+    name: Build signed minified release APKs
     runs-on: ubuntu-latest
 
     steps:
@@ -25,36 +25,24 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
 
-      - name: Prepare Keystores for Debug & Release Signing
+      - name: Prepare release keystore
         env:
           KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+          STORE_PASSWORD: ${{ secrets.STORE_PASSWORD || 'android123' }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD || 'android123' }}
         run: |
-          # Ensure debug.keystore exists for debugConfig
-          if [ ! -f "debug.keystore" ]; then
-            keytool -genkeypair -v \
-              -keystore debug.keystore \
-              -storepass android \
-              -alias androiddebugkey \
-              -keypass android \
-              -keyalg RSA \
-              -keysize 2048 \
-              -validity 10000 \
-              -dname "CN=Android Debug,O=Android,C=US"
-          fi
-
-          # Use repository secret KEYSTORE_BASE64 if provided, otherwise generate a CI upload keystore
           if [ -n "$KEYSTORE_BASE64" ]; then
             echo "$KEYSTORE_BASE64" | base64 --decode > my-upload-key.jks
-          elif [ ! -f "my-upload-key.jks" ]; then
+          else
             keytool -genkeypair -v \
               -keystore my-upload-key.jks \
-              -storepass "${{ secrets.STORE_PASSWORD || 'android123' }}" \
+              -storepass "$STORE_PASSWORD" \
               -alias upload \
-              -keypass "${{ secrets.KEY_PASSWORD || 'android123' }}" \
+              -keypass "$KEY_PASSWORD" \
               -keyalg RSA \
               -keysize 2048 \
               -validity 10000 \
-              -dname "CN=V2Ray VPN Release,O=V2RayVPN,C=US"
+              -dname "CN=Hollow VPN Release,O=Hollow VPN,C=US"
           fi
 
       - name: Ensure .env file exists
@@ -63,26 +51,30 @@ jobs:
             cp .env.example .env
           fi
 
-      - name: Build Debug APK
-        run: gradle assembleDebug --stacktrace
-
-      - name: Build R8 Minified Release APK & AAB
+      - name: Build v7a, arm64-v8a, and universal release APKs
         env:
           KEYSTORE_PATH: ${{ github.workspace }}/my-upload-key.jks
           STORE_PASSWORD: ${{ secrets.STORE_PASSWORD || 'android123' }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD || 'android123' }}
-        run: gradle assembleRelease bundleRelease --stacktrace
+        run: gradle assembleRelease --stacktrace
 
-      - name: Upload Debug APK Artifact
+      - name: Upload armeabi-v7a release APK
         uses: actions/upload-artifact@v4
         with:
-          name: v2ray-vpn-debug-apk
-          path: app/build/outputs/apk/debug/*.apk
+          name: hollow-vpn-armeabi-v7a-release
+          path: app/build/outputs/apk/release/*armeabi-v7a*.apk
+          if-no-files-found: error
 
-      - name: Upload R8 Minified Release APK & Bundle
+      - name: Upload arm64-v8a release APK
         uses: actions/upload-artifact@v4
         with:
-          name: v2ray-vpn-release-r8-minified
-          path: |
-            app/build/outputs/apk/release/*.apk
-            app/build/outputs/bundle/release/*.aab
+          name: hollow-vpn-arm64-v8a-release
+          path: app/build/outputs/apk/release/*arm64-v8a*.apk
+          if-no-files-found: error
+
+      - name: Upload universal release APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: hollow-vpn-universal-release
+          path: app/build/outputs/apk/release/*universal*.apk
+          if-no-files-found: error
