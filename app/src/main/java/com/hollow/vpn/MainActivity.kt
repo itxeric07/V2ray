@@ -12,17 +12,24 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.animateContentSize
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.size
+import androidx.compose.ui.draw.clip
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Snackbar
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Dashboard
@@ -31,6 +38,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -229,24 +238,10 @@ fun HollowVpnApp(
         }
 
         if (currentScreen == VpnScreen.CONNECTED_HOME || currentScreen == VpnScreen.SERVER_LIST) {
-            NavigationBar(
-                modifier = Modifier.align(Alignment.BottomCenter),
-                containerColor = MaterialTheme.colorScheme.surface,
-                tonalElevation = 3.dp
-            ) {
-                NavigationBarItem(
-                    selected = currentScreen == VpnScreen.CONNECTED_HOME,
-                    onClick = { vpnViewModel.navigateTo(VpnScreen.CONNECTED_HOME) },
-                    icon = { androidx.compose.material3.Icon(Icons.Outlined.Dashboard, "Dashboard") },
-                    label = { Text("Dashboard") }
-                )
-                NavigationBarItem(
-                    selected = currentScreen == VpnScreen.SERVER_LIST,
-                    onClick = { vpnViewModel.navigateTo(VpnScreen.SERVER_LIST) },
-                    icon = { androidx.compose.material3.Icon(Icons.Outlined.Dns, "Servers") },
-                    label = { Text("Servers") }
-                )
-            }
+            FloatingNavigationPill(
+                selectedScreen = currentScreen,
+                onSelect = { vpnViewModel.navigateTo(it) }
+            )
         }
 
         inspectingJsonServer?.let { server ->
@@ -272,6 +267,85 @@ fun HollowVpnApp(
                 contentColor = Color.White
             ) {
                 Text(text = data.visuals.message)
+            }
+        }
+    }
+}
+
+@Composable
+private fun BoxScope.FloatingNavigationPill(
+    selectedScreen: VpnScreen,
+    onSelect: (VpnScreen) -> Unit
+) {
+    var expanded by remember { mutableStateOf(true) }
+    val items = listOf(
+        VpnScreen.CONNECTED_HOME to (Icons.Outlined.Dashboard to "Dashboard"),
+        VpnScreen.SERVER_LIST to (Icons.Outlined.Dns to "Servers")
+    )
+    Surface(
+        modifier = Modifier
+            .align(Alignment.BottomCenter)
+            .navigationBarsPadding()
+            .padding(bottom = 14.dp)
+            .animateContentSize(),
+        shape = RoundedCornerShape(30.dp),
+        color = MaterialTheme.colorScheme.surface.copy(alpha = 0.96f),
+        tonalElevation = 6.dp,
+        shadowElevation = 10.dp
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 7.dp, vertical = 7.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            items.forEachIndexed { index, (screen, item) ->
+                val selected = selectedScreen == screen
+                Surface(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(24.dp))
+                        .clickable {
+                            onSelect(screen)
+                            if (!selected) expanded = true
+                        },
+                    shape = RoundedCornerShape(24.dp),
+                    color = if (selected) MaterialTheme.colorScheme.primaryContainer else Color.Transparent
+                ) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 13.dp, vertical = 9.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        androidx.compose.material3.Icon(
+                            imageVector = item.first,
+                            contentDescription = item.second,
+                            tint = if (selected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.size(20.dp)
+                        )
+                        if (expanded) {
+                            Spacer(Modifier.width(7.dp))
+                            Text(
+                                text = item.second,
+                                color = if (selected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant,
+                                style = MaterialTheme.typography.labelLarge
+                            )
+                        }
+                    }
+                }
+                if (index == 0) Spacer(Modifier.width(3.dp))
+            }
+            Spacer(Modifier.width(2.dp))
+            Surface(
+                modifier = Modifier
+                    .size(30.dp)
+                    .clip(RoundedCornerShape(50))
+                    .clickable { expanded = !expanded },
+                shape = RoundedCornerShape(50),
+                color = MaterialTheme.colorScheme.surfaceVariant
+            ) {
+                androidx.compose.material3.Icon(
+                    imageVector = if (expanded) Icons.Outlined.Dns else Icons.Outlined.Dashboard,
+                    contentDescription = if (expanded) "Collapse navigation" else "Expand navigation",
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(6.dp)
+                )
             }
         }
     }

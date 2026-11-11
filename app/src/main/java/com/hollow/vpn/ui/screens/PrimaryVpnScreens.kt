@@ -462,6 +462,13 @@ fun ServerItemRowContent(
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
+            Text(
+                text = "IP: ${server.resolvedIp.ifBlank { server.host }}:${server.port}",
+                style = MaterialTheme.typography.labelSmall.copy(fontSize = 11.5.sp),
+                color = TextSecondaryMuted,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
         }
 
         if (showLightningBadge) {

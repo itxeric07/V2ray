@@ -38,6 +38,7 @@ import androidx.compose.ui.unit.dp
 import com.hollow.vpn.data.ServerEntity
 import com.hollow.vpn.ui.components.CircularCountryFlag
 import com.hollow.vpn.ui.components.SageOrganicBackground
+import com.hollow.vpn.ui.theme.EmeraldAccent
 import com.hollow.vpn.ui.theme.ForestEmerald
 import com.hollow.vpn.ui.theme.PureWhiteCard
 import com.hollow.vpn.ui.theme.SubtleCardBorder
@@ -57,8 +58,13 @@ fun CountryServerListScreen(
     onBack: () -> Unit
 ) {
     BackHandler { onBack() }
-    val groups = servers.groupBy { it.countryName.ifBlank { "Unknown" } }
+    val groups = servers
+        .groupBy { it.countryName.ifBlank { "Unknown" } }
         .toSortedMap(String.CASE_INSENSITIVE_ORDER)
+    val fastest = servers
+        .filter { it.pingMs > 0 }
+        .sortedBy { it.pingMs }
+        .take(5)
     val expanded = remember { mutableStateMapOf<String, Boolean>() }
 
     SageOrganicBackground {
@@ -77,7 +83,7 @@ fun CountryServerListScreen(
             ) {
                 Column {
                     Text("Servers", style = MaterialTheme.typography.headlineMedium, color = TextPrimaryDark)
-                    Text("Choose a country and server", style = MaterialTheme.typography.bodyMedium, color = TextSecondaryMuted)
+                    Text("Fastest locations and all countries", style = MaterialTheme.typography.bodyMedium, color = TextSecondaryMuted)
                 }
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     CircularHeaderIconButton(Icons.Rounded.Add, "Add server", "country_add", onOpenAddServer)
@@ -85,12 +91,24 @@ fun CountryServerListScreen(
                     CircularHeaderIconButton(Icons.Rounded.Settings, "Settings", "country_settings", onOpenSettings)
                 }
             }
-            Spacer(Modifier.height(16.dp))
+            Spacer(Modifier.height(14.dp))
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(bottom = 24.dp),
+                contentPadding = PaddingValues(bottom = 120.dp),
                 verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
+                if (fastest.isNotEmpty()) {
+                    item {
+                        Text("Top 5 fastest locations", style = MaterialTheme.typography.titleMedium, color = TextPrimaryDark)
+                    }
+                    items(fastest, key = { "fastest_${it.id}" }) { server ->
+                        FastestLocationCard(server = server, onClick = { onSelectServer(server) })
+                    }
+                    item {
+                        Spacer(Modifier.height(6.dp))
+                        Text("All countries", style = MaterialTheme.typography.titleMedium, color = TextPrimaryDark)
+                    }
+                }
                 if (groups.isEmpty()) {
                     item {
                         Surface(shape = RoundedCornerShape(18.dp), color = PureWhiteCard) {
@@ -99,6 +117,7 @@ fun CountryServerListScreen(
                     }
                 }
                 groups.forEach { (country, countryServers) ->
+                    val orderedServers = countryServers.sortedBy { it.pingMs }
                     val isExpanded = expanded[country] ?: (groups.size == 1)
                     item(key = "country_$country") {
                         Surface(
@@ -114,10 +133,10 @@ fun CountryServerListScreen(
                                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                CircularCountryFlag(countryServers.first().countryCode, 30.dp)
+                                CircularCountryFlag(orderedServers.first().countryCode, 30.dp)
                                 Column(modifier = Modifier.weight(1f).padding(start = 12.dp)) {
                                     Text(country, style = MaterialTheme.typography.titleMedium, color = TextPrimaryDark)
-                                    Text("${countryServers.size} server${if (countryServers.size == 1) "" else "s"}", style = MaterialTheme.typography.bodySmall, color = TextSecondaryMuted)
+                                    Text("${orderedServers.size} server${if (orderedServers.size == 1) "" else "s"}", style = MaterialTheme.typography.bodySmall, color = TextSecondaryMuted)
                                 }
                                 Icon(
                                     if (isExpanded) Icons.Rounded.ExpandLess else Icons.Rounded.ExpandMore,
@@ -129,7 +148,7 @@ fun CountryServerListScreen(
                         }
                     }
                     if (isExpanded) {
-                        items(countryServers, key = { "server_${it.id}" }) { server ->
+                        items(orderedServers, key = { "server_${it.id}" }) { server ->
                             Surface(
                                 modifier = Modifier.fillMaxWidth().padding(start = 10.dp),
                                 shape = RoundedCornerShape(16.dp),
@@ -147,6 +166,36 @@ fun CountryServerListScreen(
                         }
                     }
                 }
+            }
+        }
+    }
+}
+
+@Composable
+private fun FastestLocationCard(server: ServerEntity, onClick: () -> Unit) {
+    val address = server.resolvedIp.ifBlank { server.host }
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(18.dp))
+            .clickable(onClick = onClick),
+        color = PureWhiteCard,
+        border = BorderStroke(1.dp, EmeraldAccent.copy(alpha = 0.35f)),
+        shape = RoundedCornerShape(18.dp)
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 15.dp, vertical = 13.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            CircularCountryFlag(server.countryCode, 34.dp)
+            Column(modifier = Modifier.weight(1f).padding(start = 12.dp)) {
+                Text(server.countryName, style = MaterialTheme.typography.titleSmall, color = TextPrimaryDark)
+                Text(address, style = MaterialTheme.typography.bodyMedium, color = TextSecondaryMuted)
+                Text("${server.protocolDisplay} · ${server.port}", style = MaterialTheme.typography.labelSmall, color = TextSecondaryMuted)
+            }
+            Column(horizontalAlignment = Alignment.End) {
+                Text("${server.pingMs} ms", style = MaterialTheme.typography.titleSmall, color = EmeraldAccent)
+                Text("FASTEST", style = MaterialTheme.typography.labelSmall, color = ForestEmerald)
             }
         }
     }
