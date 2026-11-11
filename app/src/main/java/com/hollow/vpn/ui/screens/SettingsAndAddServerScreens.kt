@@ -2,6 +2,7 @@ package com.hollow.vpn.ui.screens
 
 import android.content.ClipboardManager
 import android.content.Context
+import android.content.pm.PackageManager
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -29,6 +30,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowLeft
 import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
 import androidx.compose.material.icons.outlined.CloudQueue
+import androidx.compose.material.icons.outlined.Apps
 import androidx.compose.material.icons.outlined.ContentPaste
 import androidx.compose.material.icons.outlined.DeleteOutline
 import androidx.compose.material.icons.outlined.Dns
@@ -45,6 +47,7 @@ import androidx.compose.material.icons.rounded.AccountTree
 import androidx.compose.material.icons.rounded.Download
 import androidx.compose.material.icons.rounded.Route
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -157,6 +160,7 @@ fun SettingsScreen(
     BackHandler { onBack() }
 
     var activeDialog by remember { mutableStateOf<ActiveSettingDialog?>(null) }
+    var showPerAppPicker by remember { mutableStateOf(false) }
 
     SageOrganicBackground {
         Column(
@@ -232,6 +236,39 @@ fun SettingsScreen(
                     onClick = { activeDialog = ActiveSettingDialog.ROUTING_MODE },
                     testTag = "row_routing_mode"
                 )
+                HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = DividerSage)
+                SettingsToggleRow(
+                    icon = Icons.Outlined.Shield,
+                    title = "Per-app proxy",
+                    subtitle = "Proxy only selected apps, or bypass them",
+                    checked = settings.perAppProxyEnabled,
+                    onCheckedChange = { enabled ->
+                        onUpdateSettings { it.copy(perAppProxyEnabled = enabled) }
+                    },
+                    testTag = "switch_per_app_proxy"
+                )
+                if (settings.perAppProxyEnabled) {
+                    HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = DividerSage)
+                    SettingsValueNavigationRow(
+                        icon = Icons.Outlined.Apps,
+                        title = "Choose apps",
+                        subtitle = "Select the packages affected by the VPN",
+                        valueText = "${settings.selectedAppPackages.size} selected",
+                        onClick = { showPerAppPicker = true },
+                        testTag = "row_per_app_selection"
+                    )
+                    HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = DividerSage)
+                    SettingsToggleRow(
+                        icon = Icons.Outlined.SwapHoriz,
+                        title = "Bypass selected apps",
+                        subtitle = "Selected apps stay on the normal connection",
+                        checked = settings.bypassSelectedApps,
+                        onCheckedChange = { enabled ->
+                            onUpdateSettings { it.copy(bypassSelectedApps = enabled) }
+                        },
+                        testTag = "switch_bypass_selected_apps"
+                    )
+                }
                 HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = DividerSage)
                 SettingsValueNavigationRow(
                     icon = Icons.Outlined.Dns,
@@ -399,12 +436,98 @@ fun SettingsScreen(
 
         null -> Unit
     }
+
+    if (showPerAppPicker) {
+        PerAppProxyPickerDialog(
+            selectedPackages = settings.selectedAppPackages,
+            onSave = { packages ->
+                onUpdateSettings { it.copy(selectedAppPackages = packages) }
+                showPerAppPicker = false
+            },
+            onDismiss = { showPerAppPicker = false }
+        )
+    }
 }
 
 /**
  * Reusable Material 3 option picker dialog showing all available choices with radio buttons
  * and subtitles so the user can inspect and choose their preferred setting.
  */
+private data class ProxyAppChoice(val packageName: String, val label: String)
+
+@Composable
+private fun PerAppProxyPickerDialog(
+    selectedPackages: Set<String>,
+    onSave: (Set<String>) -> Unit,
+    onDismiss: () -> Unit
+) {
+    val context = LocalContext.current
+    val apps = remember(context) {
+        val pm = context.packageManager
+        pm.getInstalledApplications(PackageManager.GET_META_DATA)
+            .asSequence()
+            .filter { it.packageName != context.packageName && pm.getLaunchIntentForPackage(it.packageName) != null }
+            .map { ProxyAppChoice(it.packageName, pm.getApplicationLabel(it).toString()) }
+            .sortedBy { it.label.lowercase() }
+            .toList()
+    }
+    var workingSelection by remember(selectedPackages) { mutableStateOf(selectedPackages) }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        containerColor = PureWhiteCard,
+        title = { Text("Choose apps", color = TextPrimaryDark, fontWeight = FontWeight.Bold) },
+        text = {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(420.dp)
+                    .verticalScroll(rememberScrollState())
+            ) {
+                Text(
+                    text = "${workingSelection.size} selected",
+                    color = TextSecondaryMuted,
+                    style = MaterialTheme.typography.bodySmall,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+                apps.forEach { app ->
+                    val checked = app.packageName in workingSelection
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable {
+                                workingSelection = if (checked) workingSelection - app.packageName
+                                else workingSelection + app.packageName
+                            }
+                            .padding(vertical = 5.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Checkbox(
+                            checked = checked,
+                            onCheckedChange = { value ->
+                                workingSelection = if (value) workingSelection + app.packageName
+                                else workingSelection - app.packageName
+                            }
+                        )
+                        Column(modifier = Modifier.padding(start = 6.dp)) {
+                            Text(app.label, color = TextPrimaryDark, style = MaterialTheme.typography.bodyMedium)
+                            Text(app.packageName, color = TextSecondaryMuted, style = MaterialTheme.typography.labelSmall)
+                        }
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = { onSave(workingSelection) }) {
+                Text("Save", color = ForestEmerald, fontWeight = FontWeight.SemiBold)
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text("Cancel", color = TextSecondaryMuted) }
+        }
+    )
+}
+
 @Composable
 fun SettingOptionPickerDialog(
     title: String,

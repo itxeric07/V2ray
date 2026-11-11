@@ -5,6 +5,7 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.net.VpnService
 import android.os.Build
 import android.os.ParcelFileDescriptor
@@ -57,16 +58,19 @@ class XrayVpnService : VpnService() {
         val enableIpv6 = intent?.getBooleanExtra(EXTRA_ENABLE_IPV6, false) ?: false
         val dnsMode = intent?.getStringExtra(EXTRA_DNS_MODE) ?: "Auto (DoH)"
         val routingMode = intent?.getStringExtra(EXTRA_ROUTING_MODE) ?: "Global"
+        val perAppProxyEnabled = intent?.getBooleanExtra(EXTRA_PER_APP_PROXY_ENABLED, false) ?: false
+        val bypassSelectedApps = intent?.getBooleanExtra(EXTRA_BYPASS_SELECTED_APPS, false) ?: false
+        val selectedAppPackages = intent?.getStringArrayListExtra(EXTRA_SELECTED_APP_PACKAGES).orEmpty().toSet()
         if (host.isBlank() || xrayJson.isBlank()) {
             fail("The selected server has no usable Xray configuration")
             stopSelf()
             return START_NOT_STICKY
         }
-        startVpnTunnel(country, host, port, protocol, xrayJson, enableIpv6, dnsMode, routingMode)
+        startVpnTunnel(country, host, port, protocol, xrayJson, enableIpv6, dnsMode, routingMode, perAppProxyEnabled, bypassSelectedApps, selectedAppPackages)
         return START_NOT_STICKY
     }
 
-    private fun startVpnTunnel(country: String, host: String, port: Int, protocol: String, xrayJson: String, enableIpv6: Boolean, dnsMode: String, routingMode: String) {
+    private fun startVpnTunnel(country: String, host: String, port: Int, protocol: String, xrayJson: String, enableIpv6: Boolean, dnsMode: String, routingMode: String, perAppProxyEnabled: Boolean, bypassSelectedApps: Boolean, selectedAppPackages: Set<String>) {
         stopVpnTunnel()
         createNotificationChannel()
         try {
@@ -83,7 +87,7 @@ class XrayVpnService : VpnService() {
                     .setMtu(VPN_MTU)
                     .addAddress("10.26.0.1", 30)
                     .addDnsServer(selectedDns(dnsMode))
-                    .addDisallowedApplication(packageName)
+                configurePerAppRouting(builder, perAppProxyEnabled, bypassSelectedApps, selectedAppPackages)
                 if (!routingMode.contains("Direct Only", ignoreCase = true)) {
                     builder.addRoute("0.0.0.0", 0)
                 }
@@ -113,6 +117,29 @@ class XrayVpnService : VpnService() {
                 stopSelf()
             }
         }
+    }
+
+    /** Mirrors v2rayNG's VpnService application rules. */
+    private fun configurePerAppRouting(
+        builder: Builder,
+        enabled: Boolean,
+        bypassSelectedApps: Boolean,
+        selectedPackages: Set<String>
+    ) {
+        val packages = selectedPackages.filter { it != packageName }.toSet()
+        if (!enabled || packages.isEmpty()) {
+            builder.addDisallowedApplication(packageName)
+            return
+        }
+        packages.forEach { pkg ->
+            try {
+                if (bypassSelectedApps) builder.addDisallowedApplication(pkg)
+                else builder.addAllowedApplication(pkg)
+            } catch (_: PackageManager.NameNotFoundException) {
+                Log.w(TAG, "Skipping unavailable per-app package: $pkg")
+            }
+        }
+        if (bypassSelectedApps) builder.addDisallowedApplication(packageName)
     }
 
     private fun initializeXray() {
@@ -200,6 +227,9 @@ class XrayVpnService : VpnService() {
         const val EXTRA_ENABLE_IPV6 = "extra_enable_ipv6"
         const val EXTRA_DNS_MODE = "extra_dns_mode"
         const val EXTRA_ROUTING_MODE = "extra_routing_mode"
+        const val EXTRA_PER_APP_PROXY_ENABLED = "extra_per_app_proxy_enabled"
+        const val EXTRA_BYPASS_SELECTED_APPS = "extra_bypass_selected_apps"
+        const val EXTRA_SELECTED_APP_PACKAGES = "extra_selected_app_packages"
         private const val CHANNEL_ID = "v2ray_vpn_tunnel_channel"
         private const val NOTIFICATION_ID = 2048
         private const val VPN_MTU = 1500

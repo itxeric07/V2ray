@@ -70,7 +70,10 @@ data class AppSettingsState(
     val subAutoUpdate: Boolean = true,
     val subUpdateInterval: String = "1 hour",
     val subReplaceExisting: Boolean = true,
-    val activeSubscriptionUrl: String = DEFAULT_SUBSCRIPTION_URL
+    val activeSubscriptionUrl: String = DEFAULT_SUBSCRIPTION_URL,
+    val perAppProxyEnabled: Boolean = false,
+    val bypassSelectedApps: Boolean = false,
+    val selectedAppPackages: Set<String> = emptySet()
 ) {
     companion object {
         const val DEFAULT_SUBSCRIPTION_URL =
@@ -98,7 +101,10 @@ class VpnPreferencesStore(context: Context) {
             activeSubscriptionUrl = prefs.getString(
                 "active_sub_url",
                 AppSettingsState.DEFAULT_SUBSCRIPTION_URL
-            ) ?: AppSettingsState.DEFAULT_SUBSCRIPTION_URL
+            ) ?: AppSettingsState.DEFAULT_SUBSCRIPTION_URL,
+            perAppProxyEnabled = prefs.getBoolean("per_app_proxy", false),
+            bypassSelectedApps = prefs.getBoolean("bypass_selected_apps", false),
+            selectedAppPackages = prefs.getStringSet("per_app_packages", emptySet()) ?: emptySet()
         )
     }
 
@@ -117,6 +123,9 @@ class VpnPreferencesStore(context: Context) {
             .putString("sub_update_interval", state.subUpdateInterval)
             .putBoolean("sub_replace_existing", state.subReplaceExisting)
             .putString("active_sub_url", state.activeSubscriptionUrl)
+            .putBoolean("per_app_proxy", state.perAppProxyEnabled)
+            .putBoolean("bypass_selected_apps", state.bypassSelectedApps)
+            .putStringSet("per_app_packages", state.selectedAppPackages)
             .apply()
     }
 }
@@ -164,6 +173,9 @@ interface VpnDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertSubscription(subscription: SubscriptionEntity): Long
+
+    @Query("DELETE FROM vpn_subscriptions WHERE url = :url")
+    suspend fun deleteSubscriptionByUrl(url: String)
 
     @Query("DELETE FROM vpn_subscriptions")
     suspend fun deleteAllSubscriptions()
