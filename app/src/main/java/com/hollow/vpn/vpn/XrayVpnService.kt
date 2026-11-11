@@ -5,8 +5,6 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Intent
-import android.net.LocalSocket
-import android.net.LocalSocketAddress
 import android.net.VpnService
 import android.os.Build
 import android.os.ParcelFileDescriptor
@@ -33,12 +31,11 @@ import libv2ray.Libv2ray
 import java.io.File
 import java.security.MessageDigest
 
-/** Android VPN service backed by Xray-core and the native tun2socks bridge. */
+/** Android VPN service backed by Xray-core with a direct Android TUN file descriptor. */
 class XrayVpnService : VpnService() {
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private var vpnInterface: ParcelFileDescriptor? = null
     private var tunnelJob: Job? = null
-    private var tun2socksProcess: Process? = null
     private var coreController: CoreController? = null
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -103,10 +100,10 @@ class XrayVpnService : VpnService() {
 
                 initializeXray()
                 val core = Libv2ray.newCoreController(CoreCallback())
-                // tun2socks owns the Android TUN descriptor; Xray consumes local SOCKS only.
-                core.startLoop(xrayJson, 0)
+                // Match v2rayNG's proven architecture: Xray owns the Android TUN
+                // descriptor directly, so no executable tun2socks bridge is needed.
+                core.startLoop(xrayJson, vpnInterface?.fd ?: 0)
                 coreController = core
-                startTun2Socks()
                 _lastError.value = null
                 _isServiceRunning.value = true
                 while (isActive && vpnInterface != null) delay(500L)
@@ -129,41 +126,6 @@ class XrayVpnService : VpnService() {
         Libv2ray.initCoreEnv(assetPath, deviceId)
     }
 
-    private fun startTun2Socks() {
-        val socketPath = File(filesDir, TUN_SOCKET_NAME).absolutePath
-        File(socketPath).delete()
-        val executable = File(applicationInfo.nativeLibraryDir, TUN2SOCKS_NAME)
-        check(executable.exists() && executable.canExecute()) {
-            "tun2socks native library is unavailable for ${Build.SUPPORTED_ABIS.joinToString()}; checked ${executable.absolutePath}"
-        }
-        val command = listOf(
-            executable.absolutePath, "--netif-ipaddr", "10.26.0.2", "--netif-netmask", "255.255.255.252",
-            "--socks-server-addr", "127.0.0.1:$SOCKS_PORT", "--tunmtu", VPN_MTU.toString(),
-            "--sock-path", socketPath, "--enable-udprelay", "--loglevel", "notice"
-        )
-        tun2socksProcess = ProcessBuilder(command).directory(filesDir).redirectErrorStream(true).start()
-        sendTunFd(socketPath)
-    }
-
-    private fun sendTunFd(socketPath: String) {
-        val fd = vpnInterface?.fileDescriptor ?: error("TUN descriptor is unavailable")
-        serviceScope.launch {
-            repeat(8) { attempt ->
-                try {
-                    delay(50L shl attempt)
-                    LocalSocket().use { socket ->
-                        socket.connect(LocalSocketAddress(socketPath, LocalSocketAddress.Namespace.FILESYSTEM))
-                        socket.setFileDescriptorsForSend(arrayOf(fd))
-                        socket.outputStream.write(0)
-                    }
-                    return@launch
-                } catch (e: Exception) {
-                    if (attempt == 7) fail("tun2socks could not receive the VPN interface: ${e.message}")
-                }
-            }
-        }
-    }
-
     private fun selectedDns(mode: String): String = when {
         mode.contains("8.8.8.8") -> "8.8.8.8"
         mode.contains("9.9.9.9") -> "9.9.9.9"
@@ -175,8 +137,6 @@ class XrayVpnService : VpnService() {
         _isServiceRunning.value = false
         tunnelJob?.cancel()
         tunnelJob = null
-        try { tun2socksProcess?.destroy() } catch (_: Exception) {}
-        tun2socksProcess = null
         try { coreController?.stopLoop() } catch (_: Exception) {}
         coreController = null
         try { vpnInterface?.close() } catch (_: Exception) {}
@@ -243,9 +203,6 @@ class XrayVpnService : VpnService() {
         private const val CHANNEL_ID = "v2ray_vpn_tunnel_channel"
         private const val NOTIFICATION_ID = 2048
         private const val VPN_MTU = 1500
-        private const val SOCKS_PORT = 10808
-        private const val TUN2SOCKS_NAME = "libtun2socks.so"
-        private const val TUN_SOCKET_NAME = "tun2socks.sock"
         private const val TAG = "XrayVpnService"
         private val _isServiceRunning = MutableStateFlow(false)
         val isServiceRunning: StateFlow<Boolean> = _isServiceRunning.asStateFlow()

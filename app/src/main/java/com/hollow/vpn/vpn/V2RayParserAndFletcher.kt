@@ -902,13 +902,26 @@ class V2RayParserAndFletcher {
   },
   "inbounds": [
     {
-      "tag": "tun-in",
+      "tag": "socks-in",
       "port": 10808,
       "listen": "127.0.0.1",
       "protocol": "socks",
       "settings": {
         "auth": "noauth",
         "udp": true
+      }
+    },
+    {
+      "tag": "tun-in",
+      "protocol": "tun",
+      "settings": {
+        "name": "xray0",
+        "MTU": 1500,
+        "userLevel": 8
+      },
+      "sniffing": {
+        "enabled": true,
+        "destOverride": ["http", "tls", "quic"]
       }
     }
   ],
